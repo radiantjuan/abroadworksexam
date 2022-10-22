@@ -5,6 +5,8 @@ interface UserStateType {
     totalUsersCount: number,
     page: number,
     itemsPerPage: number,
+    sortBy: string,
+    orderSort: string,
     loading: boolean
 }
 
@@ -17,31 +19,34 @@ const initialState: UserStateType = {
     totalUsersCount: 0,
     page: 1,
     itemsPerPage: 10,
+    sortBy: 'firstName',
+    orderSort: 'asc',
     loading: false
 }
 
 export type fetchUsersType = {
     page: number,
-    limit: number
+    itemsperpage: number,
+    sortBy: string,
+    orderSort: string
 }
 
 export const fetchUsers = createAsyncThunk('users/fetchallusers', async (payload: fetchUsersType) => {
     try {
-        const result = (await axios.get(`https://6352389d9d64d7c713112dc9.mockapi.io/users?page=${payload.page}&limit=${payload.limit}`));
-        return { data: result.data, itemsperpage: payload.limit };
+        const result = (await axios.get(`https://6352389d9d64d7c713112dc9.mockapi.io/users?page=${payload.page}&limit=${payload.itemsperpage}&sortBy=${payload.sortBy}&order=${payload.orderSort}`));
+        console.log(result.data);
+        return {
+            data: result.data.items,
+            itemsperpage: payload.itemsperpage,
+            page: payload.page,
+            total_count: result.data.count,
+            sortBy: payload.sortBy,
+            orderSort: payload.orderSort
+        };
     } catch (err) {
         return err;
     }
 });
-
-export const fetchUserTotalCount = createAsyncThunk('users/fetchUserTotalCount', async () => {
-    try {
-        const result = (await axios.get(`https://6352389d9d64d7c713112dc9.mockapi.io/users`));
-        return result.data.length;
-    } catch (err) {
-        return err;
-    }
-})
 
 export const userSlice = createSlice({
     name: 'userSlice',
@@ -59,13 +64,16 @@ export const userSlice = createSlice({
             .addCase(fetchUsers.fulfilled, (state, { payload }: any) => {
                 state.loading = false;
                 state.userList = payload.data;
-                state.itemsPerPage = payload.itemsperpage
+                state.itemsPerPage = payload.itemsperpage;
+                state.page = payload.page;
+                state.totalUsersCount = payload.total_count;
+                state.sortBy = payload.sortBy;
+                state.orderSort = payload.orderSort;
+
             })
             .addCase(fetchUsers.rejected, (state, action) => {
                 state.loading = false;
-            }).addCase(fetchUserTotalCount.fulfilled, (state, { payload }: any) => {
-                state.totalUsersCount = payload;
-            });
+            })
     }
 })
 

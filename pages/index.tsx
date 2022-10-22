@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { RootState } from '../redux/store';
 import { fetchUsers } from '../redux/userSlice';
-import { fetchUserTotalCount } from '../redux/userSlice';
 import TableFooter from './components/tableFooter';
 
 
@@ -11,8 +10,12 @@ const Home: NextPage = () => {
   const userReducer = useAppSelector((state: RootState) => state.userReducer);
   const dispatch = useAppDispatch();
   useEffect(() => {
-    dispatch(fetchUsers({ page: userReducer.page, limit: userReducer.itemsPerPage }));
-    dispatch(fetchUserTotalCount());
+    dispatch(fetchUsers({
+      page: userReducer.page,
+      itemsperpage: userReducer.itemsPerPage,
+      sortBy: userReducer.sortBy,
+      orderSort: userReducer.orderSort
+    }));
   }, []);
 
   const checkAllHandler = (event: any) => {
@@ -31,6 +34,21 @@ const Home: NextPage = () => {
     const checkboxAll: any = document.getElementById('checkbox-all');
     checkboxAll.checked = false;
   }
+
+  const sortHandler = (sortBy: string) => {
+    let orderSort = 'asc';
+    if (sortBy === userReducer.sortBy) {
+      orderSort = userReducer.orderSort === 'asc' ? 'desc' : 'asc';
+    }
+
+    dispatch(fetchUsers({
+      page: userReducer.page,
+      itemsperpage: userReducer.itemsPerPage,
+      sortBy: sortBy,
+      orderSort: orderSort
+    }));
+  }
+
   const rows = userReducer.userList.map((val: any, key: number) => {
     return (
       <tr key={key} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -52,6 +70,12 @@ const Home: NextPage = () => {
       </tr>
     )
   });
+
+  const orderByDirection = (userReducer.orderSort === 'asc') ? (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="inline-block bi bi-caret-up-fill" viewBox="0 0 16 16"> <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" /> </svg>
+  ) : (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="inline-block bi bi-caret-down-fill" viewBox="0 0 16 16"> <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" /></svg>
+  )
   return (
     <>
       <div className="sm:container mx-auto my-5">
@@ -66,13 +90,22 @@ const Home: NextPage = () => {
                   </div>
                 </th>
                 <th scope="col" className="py-3 px-6">
-                  First Name
+                  <a href="#" onClick={() => { sortHandler('firstName') }}>
+                    First Name
+                    {(userReducer.sortBy === 'firstName') ? orderByDirection : ''}
+                  </a>
                 </th>
                 <th scope="col" className="py-3 px-6">
-                  Last Name
+                  <a href="#" onClick={() => { sortHandler('lastName') }}>
+                    Last Name
+                    {(userReducer.sortBy === 'lastName') ? orderByDirection : ''}
+                  </a>
                 </th>
                 <th scope="col" className="py-3 px-6">
-                  Email
+                  <a href="#" onClick={() => { sortHandler('email') }}>
+                    Email
+                    {(userReducer.sortBy === 'email') ? orderByDirection : ''}
+                  </a>
                 </th>
               </tr>
             </thead>
